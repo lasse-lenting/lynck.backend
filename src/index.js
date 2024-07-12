@@ -12,6 +12,7 @@ const HOST = "https://74131d66-b30e-4d32-9640-38542ad5907a-00-mv5a9tnzfpp6.kirk.
 
 var products;
 var tokens
+
 MongoClient.connect("mongodb+srv://kookschap:RlGV0cBcu2KquM30@cluster0.fwzqbnq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", { useUnifiedTopology: true })
     .then(client => {
         products = client.db("lynck").collection("products");
