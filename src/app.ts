@@ -5,7 +5,7 @@ import express, { Request, Response } from 'express';
 import connectDB from '@/db'; // Adjust the path as needed
 import bodyParser from 'body-parser';
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 4000;
 
 import { authenticate } from '@/middlewares/auth.middleware';
 connectDB();
