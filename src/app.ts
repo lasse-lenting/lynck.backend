@@ -29,6 +29,6 @@ app.get('/', (req: Request, res: Response) => {
 app.use('/shoppy', authenticate, shoppyRouter);
 
 // Start the server
-app.listen(port, () => {
+app.listen(4000, () => {
     console.log(`Server is running on port ${port}`);
 });
