@@ -18,7 +18,6 @@ async function fetchShop(username: string) {
     if (!data.ok) throw new Error('Failed to fetch data from Shoppy API');
 
     const response = await data.json();
-    console.log(response.user);
     return response.user;
 }
 
@@ -33,10 +32,9 @@ export const saveShop = async (username: string): Promise<IShop> => {
         if (shop.lastUpdated <= twoHoursAgo) {
             // Fetch shop data only if last update was more than 2 hours ago
             shopData = await fetchShop(username);
+            console.log(shopData.rep);
             // Update existing shop
             shop.avatar = shopData.avatar;
-            shop.discord = shopData.discord;
-            shop.feedbacks = shopData.feedbacks;
             shop.lastUpdated = new Date();
         } else {
             throw new Error('Shop can only be refreshed every 2 hours');
@@ -45,24 +43,35 @@ export const saveShop = async (username: string): Promise<IShop> => {
         // Fetch shop data for new shop creation
         shopData = await fetchShop(username);
         // Create new shop
+        try {
         shop = new Shop({
-            ...shopData,
+            platform: 'shoppy',
+            feedbacks: {
+                positive: shopData.rep.positive,
+                neutral:  shopData.rep.neutral,
+                negative: shopData.rep.negative,
+            },
             createdAt: new Date(),
             lastUpdated: new Date(),
+            username,
+            avatar: shopData.avatar,
         });
+    } catch (error) {
+        console.log(error);
+    }
     }
 
     await shop.save();
 
     // Save products separately, ensure shopData is defined
     if (shopData && shopData.products) {
-        await saveProducts(shop._id as mongoose.Types.ObjectId, shopData.products);
+        await saveProducts(shop._id as mongoose.Types.ObjectId, shopData.products, shopData.discord);
     }
 
     return shop;
 };
 
-const saveProducts = async (shopId: mongoose.Types.ObjectId, products: any[]) => {
+const saveProducts = async (shopId: mongoose.Types.ObjectId, products: any[], discord: string) => {
     // Remove existing products for the shop
     await Product.deleteMany({ shopId });
 
@@ -70,13 +79,21 @@ const saveProducts = async (shopId: mongoose.Types.ObjectId, products: any[]) =>
     const productDocs = await Promise.all(products.map(async (product) => {
         const detailedProduct = await fetchProductDetails(product.id);
         const gateways = detailedProduct.cashier.paymentMethods.map(method => method.name.toLowerCase());
+        // discord into socials object from shopData.discord 
+
+        const discordSocial = {
+            platform: 'discord',
+            link: discord,
+        };
         return {
+            platform: 'shoppy',
             title: detailedProduct.title,
             id: detailedProduct.id,
             image: detailedProduct.image ? {
                 url: detailedProduct.image.url,
                 path: detailedProduct.image.path,
             }: null,
+            socials: [discordSocial],
             quantity: {
                 min: detailedProduct.quantity.min,
                 max: detailedProduct.quantity.max,
@@ -84,6 +101,7 @@ const saveProducts = async (shopId: mongoose.Types.ObjectId, products: any[]) =>
             price: detailedProduct.price,
             currency: detailedProduct.currency,
             stock: detailedProduct.stock,
+            sold: detailedProduct.sold,
             gateways,
             shopId,
         };

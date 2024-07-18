@@ -9,17 +9,20 @@ interface Rep {
 export interface IShop extends Document {
   username: string;
   avatar: string;
-  discord: string;
-  feedbacks: Rep[];
   createdAt: Date;
+  feedbacks: Rep[];
   lastUpdated: Date;
 }
 
 const ShopSchema: Schema = new Schema({
+  platform: { type: String, required: true },
   username: { type: String, required: true },
   avatar: { type: String, required: true },
-  discord: { type: String, required: false },
-  feedbacks: [{ type: Schema.Types.Mixed, required: false }],
+  feedbacks: {
+    positive: { type: Number, required: true },
+    neutral: { type: Number, required: true },
+    negative: { type: Number, required: true },
+  },
   createdAt: { type: Date, default: Date.now },
   lastUpdated: { type: Date, default: Date.now },
 });
