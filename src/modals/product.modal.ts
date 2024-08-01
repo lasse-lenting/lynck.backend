@@ -1,7 +1,6 @@
 // src/models/product.model.ts
 
 import mongoose, { Schema, Document } from 'mongoose';
-import path from 'path';
 interface Image {
     url: string;
     path: string;
@@ -12,6 +11,7 @@ interface Social {
 }
 export interface IProduct extends Document {
     platform: string;
+    shopName: string;
     title: string;
     id: string;
     image: Image;
@@ -28,13 +28,16 @@ export interface IProduct extends Document {
     price: number;
     currency: string;
     stock: number | string;
+    url: string;
     gateways: string[];
     sold: number;
     shopId: mongoose.Types.ObjectId;
+    createdAt: Date;
 }
 
 const ProductSchema: Schema = new Schema({
     platform: { type: String, required: true },
+    shopName: { type: String, required: true },
     title: { type: String, required: true },
     id: { type: String, required: true },
     image: {
@@ -45,6 +48,7 @@ const ProductSchema: Schema = new Schema({
         min: { type: Number, required: true },
         max: { type: Schema.Types.Mixed, required: true },
     },
+    url: { type: String, required: true },
     stats: {
         rating: { type: Number, required: false },
         totalFeedbacks: { type: Number, required: false },
@@ -55,6 +59,7 @@ const ProductSchema: Schema = new Schema({
     sold: { type: Number, required: false },
     gateways: [{ type: String, required: false }],
     shopId: { type: Schema.Types.ObjectId, ref: 'Shop', required: true },
+    createdAt: { type: Date, default: Date.now },
 });
 
 const Product = mongoose.model<IProduct>('Product', ProductSchema);
