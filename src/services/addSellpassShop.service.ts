@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 import Shop, { IShop } from '@/modals/shop.modal';
 import Product, { IProduct } from '@/modals/product.modal';
+import { url } from 'inspector';
 
 // Fetch listing paths from Sellpass
 async function fetchProductListingPaths(username: string) {
@@ -101,26 +102,6 @@ export const saveShop = async (username: string): Promise<IShop> => {
     }
 };
 
-function translateGateway(gateway: number) {
-    switch (gateway) {
-        case 0:
-            return 'coinbasecommerce';
-        case 1:
-            return 'stripe';
-        case 2:
-            return 'paypal';
-        case 3:
-            return 'cashapp';
-        case 4:
-            return 'paypalff';
-        case 5:
-            return 'virtualpayments';
-        case 6:
-            return 'square';
-        default:
-            return 'unknown';
-    }
-}
 
 const saveProducts = async (username: string, shopId: mongoose.Types.ObjectId) => {
     try {
@@ -163,19 +144,23 @@ const saveProducts = async (username: string, shopId: mongoose.Types.ObjectId) =
             }
         }
         var productDocs = detailedProducts.map((detailedProduct, index) => {
+
             // Log the product type here
+            console.log('image', detailedProduct.product.thumbnailCfImageId);
             return {
                 platform: 'sellpass',
+                shopName: username,
                 title: detailedProduct.product.title,
                 id: detailedProduct.product.id,
-                image: detailedProduct.image ? {
-                    url: detailedProduct.image.url,
-                    path: detailedProduct.image.path,
+                image: detailedProduct.product.thumbnailCfImageId ? {
+                    url: "https://imagedelivery.net/"+detailedProduct.product.thumbnailCfImageId+"/productCard",
+                    path: detailedProduct.product.thumbnailCfImageId,
                 } : null,
                 quantity: {
                     min: getStats(detailedProduct.product.variants[0]).min,
                     max: getStats(detailedProduct.product.variants[0]).max,
                 },
+                url: username+".sellpass.io/products/"+detailedProduct.path,
                 socials: detailedProduct.socials,
                 price: detailedProduct.minPriceDetails.amount,
                 currency: detailedProduct.minPriceDetails.currency,
@@ -187,6 +172,7 @@ const saveProducts = async (username: string, shopId: mongoose.Types.ObjectId) =
                 sold: detailedProduct.product.statistics.productsSold,
                 gateways: [],
                 shopId,
+                createdAt: new Date(),
             }
         });
 

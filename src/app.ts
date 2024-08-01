@@ -14,9 +14,11 @@ connectDB();
 // Route imports
 import shoppyRouter from '@/routes/shoppy.router';
 import sellpassRouter from '@/routes/sellpass.router';
-
+import productsRouter from '@/routes/products.router';
+import cors from 'cors';
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cors());
 // Route definitions
 app.get('/', (req: Request, res: Response) => {
     res.json(
@@ -29,7 +31,7 @@ app.get('/', (req: Request, res: Response) => {
 
 app.use('/shoppy', authenticate, shoppyRouter);
 app.use('/sellpass', authenticate, sellpassRouter);
-
+app.use('/products', productsRouter);
 // Start the server
 app.listen(4000, () => {
     console.log(`Server is running on port ${port}`);

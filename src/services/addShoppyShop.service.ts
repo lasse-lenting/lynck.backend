@@ -65,19 +65,20 @@ export const saveShop = async (username: string): Promise<IShop> => {
 
     // Save products separately, ensure shopData is defined
     if (shopData && shopData.products) {
-        await saveProducts(shop._id as mongoose.Types.ObjectId, shopData.products, shopData.discord);
+        await saveProducts(shop._id as mongoose.Types.ObjectId, shopData.products, shopData.discord, username);
     }
 
     return shop;
 };
 
-const saveProducts = async (shopId: mongoose.Types.ObjectId, products: any[], discord: string) => {
+const saveProducts = async (shopId: mongoose.Types.ObjectId, products: any[], discord: string, username: string) => {
     // Remove existing products for the shop
     await Product.deleteMany({ shopId });
 
     // Fetch detailed product information and insert new products
     const productDocs = await Promise.all(products.map(async (product) => {
         const detailedProduct = await fetchProductDetails(product.id);
+        console.log(detailedProduct);
         const gateways = detailedProduct.cashier.paymentMethods.map(method => method.name.toLowerCase());
         // discord into socials object from shopData.discord 
 
@@ -87,6 +88,7 @@ const saveProducts = async (shopId: mongoose.Types.ObjectId, products: any[], di
         };
         return {
             platform: 'shoppy',
+            shopName: username,
             title: detailedProduct.title,
             id: detailedProduct.id,
             image: detailedProduct.image ? {
@@ -98,12 +100,18 @@ const saveProducts = async (shopId: mongoose.Types.ObjectId, products: any[], di
                 min: detailedProduct.quantity.min,
                 max: detailedProduct.quantity.max,
             },
+            url: "https://shoppy.gg/product/"+detailedProduct.id,
+            stats: {
+                rating: detailedProduct.rating,
+                totalFeedbacks: detailedProduct.totalFeedbacks,
+            },
             price: detailedProduct.price,
             currency: detailedProduct.currency,
             stock: detailedProduct.stock,
             sold: detailedProduct.sold,
             gateways,
             shopId,
+            createdAt: new Date(),
         };
     }));
 
